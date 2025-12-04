@@ -9,13 +9,16 @@ Este proyecto consiste en un robot autónomo basado en **ESP32** que puede detec
 * Módulo de motor L298N 
 * 4 Motores de DC con rueda
 * Bomba de agua + relay
-* Servomotor (para controlar la dirección del agua)
-* Fuente de poder (baterías de 3V)
+* Sensor ultrasónico
+* 2 Servomotores (para controlar la dirección del agua y el sensor ultrasónico)
+* Fuente de poder (baterías de 3.7V)
+* Regulador de voltaje
 * Node-RED + Mosquitto
 
 ## Funcionalidades
 
 * **Detección de fuego** usando sensores infrarrojos.
+* **Modo Autónomo** leyendo el ultrasónico, evita chocar.
 * **Movimiento** controlado por Node-RED:
 
   * Adelante
@@ -32,13 +35,17 @@ Este proyecto consiste en un robot autónomo basado en **ESP32** que puede detec
 
 ## Tópicos MQTT
 
-| Propósito               | Tópico           | Dirección |
-| ----------------------- | ---------------- | --------- |
-| Movimiento del robot    | `Estado/Llantas` | Enviar    |
-| Estado de la bomba      | `Estado/Bomba`   | Enviar    |
-| Detección de fuego      | `Detectar/Fuego` | Recibir   |
-| Estado del sistema      | `Sistema/Estado` | Recibir   |
-| Posición del servomotor | `Posicion/Servo` | Recibir   |
+| Propósito               | Tópico                | Dirección |
+| ----------------------- | --------------------- | --------- |
+| Movimiento del robot    | `Estado/Llantas`      | Enviar    |
+| Estado de la bomba      | `Estado/Bomba`        | Enviar    |
+| Detección de fuego      | `Detectar/Fuego`      | Recibir   |
+| Estado del sistema      | `Sistema/Estado`      | Recibir   |
+| Posición del servoAgua  | `Posicion/Servo`      | Recibir   |
+| Posición del servoRadar | `Posicion/ServoRadar` | Recibir   |
+| Mover el servoAgua      | `Mover/ServoAgua`     | Enviar    |
+| Mover el servoRadar     | `Mover/ServoRadar`    | Enviar    |
+| Elige si es autónomo    | `Robot/Modo`          | Enviar    |
 
 
 ## Lógica del robot
@@ -50,6 +57,13 @@ Cuando se detecta fuego:
 3. Activa la bomba y comienza el barrido del servomotor.
 4. Publica estados en MQTT y regresa a modo reposo.
 
+Cuando está en modo autónomo:
+
+1. Avanza hacia adelante hasta encontrar un obstáculo.
+2. Cuando lee un obstáculo, escanea izquierda y derecha.
+3. En base a lo que leyó al escanear, decide si girar a la izquierda o a la derecha.
+4. Después del giro vuelve a escanear.
+
 ## Interfaz en Node-RED
 
 * Botones para enviar comandos de movimiento.
@@ -58,6 +72,9 @@ Cuando se detecta fuego:
 
   * Fuego detectado
   * Estado del robot
+
+* Gráficas para ver la posición y valor en grados de ambos servomotores.
+* Inputs de texto para cambiar el ángulo de ambos servomotores. 
 
 ## Código
 
